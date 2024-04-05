@@ -1,79 +1,51 @@
-// Check if Angel One account is connected
-function isAccountConnected() {
-    // Add your logic to determine if the account is connected
-    // For example, you can check if API and Secret keys are filled
-    const apiKey = document.getElementById("apiKey").value;
-    const secretKey = document.getElementById("secretKey").value;
-    return apiKey !== "" && secretKey !== "";
-}
-
-// Check if bot is taking trades
-function isBotTakingTrades() {
-    // Add your logic to determine if the bot is taking trades
-    // For example, you can check if the bot is started
-    // or if certain conditions are met for taking trades
-    // This is a placeholder function, replace it with your actual logic
-    return false; // Change this based on your actual logic
-}
-
-// Update account status
-function updateAccountStatus() {
-    const accountStatusElement = document.getElementById("accountStatus");
-    if (isAccountConnected()) {
-        accountStatusElement.textContent = "Angel One account is connected.";
-    } else {
-        accountStatusElement.textContent = "Angel One account is not connected.";
+function calculateEMA(data, span) {
+    let ema = [];
+    let multiplier = 2 / (span + 1);
+    let emaVal = data.slice(0, span).reduce((a, b) => a + b) / span;
+    ema.push(emaVal);
+  
+    for (let i = span; i < data.length; i++) {
+      emaVal = (data[i] - emaVal) * multiplier + emaVal;
+      ema.push(emaVal);
     }
-}
-
-// Update bot status
-function updateBotStatus() {
-    const botStatusElement = document.getElementById("botStatus");
-    if (isBotTakingTrades()) {
-        botStatusElement.textContent = "Bot is taking trades.";
+  
+    return ema;
+  }
+  
+  function generateSignals(emaShort, emaLong) {
+    if (emaShort.slice(-1)[0] > emaLong.slice(-1)[0] && emaShort.slice(-2)[0] <= emaLong.slice(-2)[0]) {
+      return 'BUY';
+    } else if (emaShort.slice(-1)[0] < emaLong.slice(-1)[0] && emaShort.slice(-2)[0] >= emaLong.slice(-2)[0]) {
+      return 'SELL';
     } else {
-        botStatusElement.textContent = "Bot is not taking trades.";
+      return 'HOLD';
     }
-}
-
-// Function to connect the bot
-function connectBot(apiKey, secretKey) {
-    // Add your code here to connect the bot using the provided API key and secret key
-    // This is a placeholder function, replace it with your actual bot connection logic
-    console.log("Connecting bot...");
-    // Example: Make a fetch request to your backend service
-    fetch('https://your-backend-service.com/connect', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            apiKey: apiKey,
-            secretKey: secretKey
-        }),
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to connect bot');
-        }
-        console.log('Bot connected successfully');
-        // Update bot status after successful connection
-        updateBotStatus();
-    })
-    .catch(error => {
-        console.error('Error connecting bot:', error);
-        // Handle error connecting bot, e.g., display error message to the user
-    });
-}
-
-// Event listener for the connect button
-document.getElementById("connectBtn").addEventListener("click", function(event) {
-    event.preventDefault(); // Prevent default form submission behavior
-    const apiKey = document.getElementById("apiKey").value;
-    const secretKey = document.getElementById("secretKey").value;
-    connectBot(apiKey, secretKey);
-});
-
-// Update status initially
-updateAccountStatus();
-updateBotStatus();
+  }
+  
+  function executeTrade(symbol, quantity, transactionType) {
+    // Implement trade execution logic here
+    console.log(`Executing ${transactionType} order for ${quantity} ${symbol}`);
+  }
+  
+  function startTrading() {
+    const symbol = document.getElementById('symbol').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+  
+    // Mock historical price data (replace with actual data retrieval)
+    const historicalData = [100, 110, 120, 130, 125, 135, 140, 145, 150, 160, 155, 165, 170, 175, 180];
+  
+    const shortEMA = calculateEMA(historicalData, 5); // Example: Short-term EMA with span of 5
+    const longEMA = calculateEMA(historicalData, 10); // Example: Long-term EMA with span of 10
+  
+    const signal = generateSignals(shortEMA, longEMA);
+  
+    document.getElementById('signal').innerText = `Signal: ${signal}`;
+  
+    // Execute trade based on signal
+    if (signal === 'BUY') {
+      executeTrade(symbol, quantity, 'BUY');
+    } else if (signal === 'SELL') {
+      executeTrade(symbol, quantity, 'SELL');
+    }
+  }
+  

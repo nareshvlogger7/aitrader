@@ -1,41 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angel One Setup</title>
-    <!-- Link your external stylesheet here if needed -->
-    <!-- <link rel="stylesheet" href="styles.css"> -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EMA Trading Bot</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Setup Angel One Account</h1>
-        <form id="angelOneForm">
-            <label for="apiKey">API Key:</label>
-            <input type="text" id="apiKey" name="apiKey" required>
-            <label for="secretKey">Secret Key:</label>
-            <input type="text" id="secretKey" name="secretKey" required>
-            <button type="submit" id="connectBtn">Connect</button>
-            <p id="accountStatus"></p>
-        </form>
-        <hr>
-        <h1>Configure EMA 21,9 Strategy</h1>
-        <form id="emaStrategyForm">
-            <label for="emaPeriod">EMA Period:</label>
-            <input type="number" id="emaPeriod" name="emaPeriod" value="21" required>
-            <label for="emaThreshold">EMA Threshold:</label>
-            <input type="number" id="emaThreshold" name="emaThreshold" value="9" required>
-            <button type="submit" id="configureBtn">Configure</button>
-            <a href="trades.html">TRADERS TAKEN</a> <!-- Corrected the anchor tag -->
-        </form>
-        <hr>
-        <h1>Start Bot</h1>
-        <button id="startBotBtn">Start Bot</button>
-        <button id="stopBotBtn">Stop Bot</button>
-        <p id="botStatus"></p>
+  <div class="container">
+    <h1>EMA Trading Bot</h1>
+    <div>
+      <label for="symbol">Symbol:</label>
+      <input type="text" id="symbol" value="AAPL">
     </div>
-    
-        <script src="script1.js"></script>
-    
+    <div>
+      <label for="quantity">Quantity:</label>
+      <input type="number" id="quantity" value="10">
+    </div>
+    <button onclick="startTrading()">Start Trading</button>
+    <div id="signal"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
