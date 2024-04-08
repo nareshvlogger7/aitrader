@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angel One EMA Crossover Strategy</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #connectionStatus {
+            margin-bottom: 20px;
+        }
+        #tradingSignals {
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="connectionStatus"></div>
+    <div id="tradingSignals"></div>
+
+    <script>
+        // API URL for historical data
+        const historicalDataURL = 'https://api.angelbroking.com/historical_data';
+
+        // Function to check API connectivity
+        async function checkAPIConnection(url) {
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    return true;
+                } else {
+                    throw new Error('API request failed');
+                }
+            } catch (error) {
+                console.error('API Connection Error:', error);
+                return false;
+            }
+        }
+
+        // Function to fetch historical data from API
+        async function fetchHistoricalData() {
+            const isConnected = await checkAPIConnection(historicalDataURL);
+            if (isConnected) {
+                try {
+                    const response = await fetch(historicalDataURL);
+                    const data = await response.json();
+                    document.getElementById('tradingSignals').textContent = JSON.stringify(data, null, 2);
+                    
+                    // Generate EMA crossover signals
+                    const signals = generateEMASignals(data.candles);
+                    displayTradingSignals(signals);
+                } catch (error) {
+                    console.error('Error fetching historical data:', error);
+                }
+            } else {
+                document.getElementById('tradingSignals').textContent = 'API not connected';
+            }
+        }
+
+        // Function to generate EMA crossover signals
+        function generateEMASignals(candles) {
+            const emaShort = calculateEMA(candles, 9);
+            const emaLong = calculateEMA(candles, 21);
+
+            const signals = [];
+            for (let i = 1; i < emaShort.length; i++) {
+                const previousEMAShort = emaShort[i - 1];
+                const previousEMALong = emaLong[i - 1];
+                const currentEMAShort = emaShort[i];
+                const currentEMALong = emaLong[i];
+
+                if (previousEMAShort < previousEMALong && currentEMAShort > currentEMALong) {
+                    signals.push({ timestamp: candles[i].timestamp, action: 'BUY' });
+                } else if (previousEMAShort > previousEMALong && currentEMAShort < currentEMALong) {
+                    signals.push({ timestamp: candles[i].timestamp, action: 'SELL' });
+                }
+            }
+
+            return signals;
+        }
+
+        // Function to calculate EMA
+        function calculateEMA(candles, period) {
+            const closePrices = candles.map(candle => candle.close);
+            const ema = [];
+            const multiplier = 2 / (period + 1);
+            let sum = closePrices.slice(0, period).reduce((total, price) => total + price, 0) / period;
+            ema.push(sum);
+
+            for (let i = period; i < closePrices.length; i++) {
+                const nextEma = (closePrices[i] - ema[i - period]) * multiplier + ema[i - period];
+                ema.push(nextEma);
+            }
+
+            return ema;
+        }
+
+        // Function to display trading signals on the webpage
+        function displayTradingSignals(signals) {
+            const tradingSignalsContainer = document.getElementById('tradingSignals');
+            tradingSignalsContainer.innerHTML = ''; // Clear previous content
+
+            if (signals.length === 0) {
+                tradingSignalsContainer.textContent = 'No trading signals based on EMA crossover.';
+            } else {
+                const signalsList = document.createElement('ul');
+                signals.forEach(signal => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${signal.timestamp} - ${signal.action}`;
+                    signalsList.appendChild(listItem);
+                });
+                tradingSignalsContainer.appendChild(signalsList);
+            }
+        }
+
+        // Check API connectivity and fetch historical data on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const connectionStatus = document.getElementById('connectionStatus');
+            const isConnected = await checkAPIConnection(historicalDataURL);
+
+            if (isConnected) {
+                connectionStatus.textContent = 'Angel One API Connected';
+                fetchHistoricalData();
+            } else {
+                connectionStatus.textContent = 'Angel One API Not Connected';
+            }
+        });
+    </script>
+</body>
+</html>
